@@ -56,12 +56,12 @@ int setnonblocking(int fd) {
 
 int accept_connection(int listen_fd, int epoll_fd) {
   struct sockaddr_in client_addr;
-  socklen_t client_addrlen = 1;
-  memset(&client_addr, 0, sizeof(struct sockaddr_in));
+  socklen_t slen = sizeof(struct sockaddr_in);
+  memset(&client_addr, 0, slen);
 
   // 可能有多个连接到来
   while (true) {
-    int conn_fd = accept(listen_fd, (struct sockaddr *)&client_addr, &client_addrlen);
+    int conn_fd = accept(listen_fd, (struct sockaddr *)&client_addr, &slen);
     if (conn_fd < 0) {
       if ((errno == EAGAIN) || (errno == EWOULDBLOCK)) {
         break;
