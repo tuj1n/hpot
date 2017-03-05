@@ -87,6 +87,8 @@ int accept_connection(int listen_fd, int epoll_fd) {
 }
 
 int main(int argc, char *argv[]) {
+
+  log("server started");
   // 创建 socket 连接并监听
   int listen_fd = startup(PORT);
   setnonblocking(listen_fd);
@@ -110,20 +112,16 @@ int main(int argc, char *argv[]) {
       request_t *r = (request_t *)events[i].data.ptr;
       int err;
       if (events[i].events & EPOLLIN) {
-        if ((err = handle_request(r)) < 0) {
+        if ((err = handle_request(r)) < 0)
           close_request(r);
-        }
-        else {
+        else
           update_active(r);
-        }
       }
       if (events[i].events & EPOLLOUT) {
-        if ((err == handle_response(r)) < 0) {
+        if ((err == handle_response(r)) < 0)
           close_request(r);
-        }
-        else {
+        else
           update_active(r);
-        }
       }
     }
     check_timeout();

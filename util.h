@@ -4,4 +4,5 @@
 #include <stdio.h>
 #define log_info(msg, ...) fprintf(stdout, "%s:%d: " msg "\n", __FILE__, __LINE__, ##__VA_ARGS__)
 #define log_err(msg, ...) fprintf(stderr, "ERROR %s:%d: " msg "\n", __FILE__, __LINE__, ##__VA_ARGS__)
+#define log(msg, ...) fprintf(stderr, msg "\n", ##__VA_ARGS__)
 #endif
