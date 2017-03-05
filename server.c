@@ -3,16 +3,19 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/mman.h>
 #include <time.h>
+#include <stdbool.h>
+#include <errno.h>
+#include "server.h"
+#include "request.h"
+#include "handle.h"
+#include "heap.h"
 #include "util.h"
-
-#define PORT 8888
-#define MAX_LISTEN 1024
-#define MAX_EVENTS 65535
 
 int startup(uint16_t port) {
   int listen_fd = 0;
@@ -51,52 +54,81 @@ int setnonblocking(int fd) {
   return 0;
 }
 
+int accept_connection(int listen_fd, int epoll_fd) {
+  struct sockaddr_in client_addr;
+  socklen_t client_addrlen = 1;
+  memset(&client_addr, 0, sizeof(struct sockaddr_in));
+
+  // 可能有多个连接到来
+  while (true) {
+    int conn_fd = accept(listen_fd, (struct sockaddr *)&client_addr, &client_addrlen);
+    if (conn_fd < 0) {
+      if ((errno == EAGAIN) || (errno == EWOULDBLOCK)) {
+        break;
+      }
+      else {
+        log_err("accept");
+        break;
+      }
+    }
+    setnonblocking(conn_fd);
+
+    request_t *r = (request_t *)malloc(sizeof(request_t));
+    request_init(r, conn_fd, epoll_fd);
+
+    // TODO: 注册request到堆中
+    r->event.events = EPOLLIN | EPOLLET;
+    r->event.data.ptr = (void*)r;
+    r->client_ip = inet_ntoa(client_addr.sin_addr);
+    log_info("%s", r->client_ip);
+
+    epoll_ctl(epoll_fd, EPOLL_CTL_ADD, r->fd, &r->event);
+  }
+}
+
 int main(int argc, char *argv[]) {
   // 创建 socket 连接并监听
   int listen_fd = startup(PORT);
   setnonblocking(listen_fd);
 
-  struct sockaddr_in client_addr;
-  socklen_t client_addrlen = 1;
-  memset(&client_addr, 0, sizeof(struct sockaddr_in));
-
-  // 创建 epoll, 注册 listen_fd
   int epoll_fd = epoll_create1(0);
   struct epoll_event ev, events[MAX_EVENTS];
+
   ev.events = EPOLLIN | EPOLLET;
-  ev.data.fd = listen_fd;
+  ev.data.ptr = (void *)&listen_fd;
   epoll_ctl(epoll_fd, EPOLL_CTL_ADD, listen_fd, &ev);
 
-  while (1) {
+  while (true) {
     int nfds = epoll_wait(epoll_fd, events, MAX_EVENTS, -1);
-    int i, fd;
+    for (int i = 0; i != nfds; i++) {
+      int fd = *((int *)(events[i].data.ptr));
 
-    for (i = 0; i != nfds; i++) {
-      fd = events[i].data.fd;
-      char buf[1024];
-      int n;
-
-      // 新连接
       if (fd == listen_fd) {
-        printf("connect(), time: %ld\n", time(NULL));
-        int conn_fd;
-          conn_fd = accept(listen_fd, (struct sockaddr *)&client_addr, &client_addrlen);
-          setnonblocking(conn_fd);
-          ev.data.fd = conn_fd;
-          epoll_ctl(epoll_fd, EPOLL_CTL_ADD, conn_fd, &ev);
+        accept_connection(listen_fd, epoll_fd);
       }
-      else if (events[i].events & EPOLLIN) {
-        printf("EPOLLIN\n");
-          while ((n = read(fd, buf, sizeof(buf))) > 0) {
-            write(STDOUT_FILENO, buf, n);
-          }
-          char res[] = "HTTP 200/OK\r\nContent-type: text/plain\r\nContent-length: 19\r\n\r\nHi! I'm a message!\r\n";
-          write(fd, res, sizeof(res));
-          close(fd);
+
+      request_t *r = (request_t *)events[i].data.ptr;
+      int err;
+      if (events[i].events & EPOLLIN) {
+        if ((err = handle_request(r)) < 0) {
+          close_request(r);
+        }
+        else {
+          update_active(r);
+        }
       }
-      else if (events[i].events & EPOLLOUT) {
-        printf("EPOLLOUT\n");
+      if (events[i].events & EPOLLOUT) {
+        if ((err == handle_response(r)) < 0) {
+          close_request(r);
+        }
+        else {
+          update_active(r);
+        }
       }
     }
+    check_timeout();
   }
+
+  close(listen_fd);
+  return 0;
 }
