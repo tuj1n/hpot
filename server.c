@@ -80,7 +80,7 @@ int accept_connection(int listen_fd, int epoll_fd) {
     r->event.events = EPOLLIN | EPOLLET;
     r->event.data.ptr = (void*)r;
     r->client_ip = inet_ntoa(client_addr.sin_addr);
-    log_info("%s", r->client_ip);
+    log("%s connect", r->client_ip);
 
     epoll_ctl(epoll_fd, EPOLL_CTL_ADD, r->fd, &r->event);
   }
@@ -112,8 +112,9 @@ int main(int argc, char *argv[]) {
       request_t *r = (request_t *)events[i].data.ptr;
       int err;
       if (events[i].events & EPOLLIN) {
-        if ((err = handle_request(r)) < 0)
+        if ((err = handle_request(r)) == ERROR) {
           close_request(r);
+        }
         else
           update_active(r);
       }

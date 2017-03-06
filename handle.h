@@ -5,4 +5,5 @@
 
 int handle_request(request_t *r);
 int handle_response(request_t *r);
+int handle_request_line(request_t *r);
 #endif
