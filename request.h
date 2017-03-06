@@ -4,6 +4,7 @@
 #include "server.h"
 #include "buffer.h"
 #include <sys/epoll.h>
+#include <stdbool.h>
 #include <time.h>
 
 #define OK  0
@@ -26,6 +27,7 @@ typedef struct request{
   time_t active_time;
 
   int state;  // 200 301 304...
+  bool done;
 
   buffer_t recv_buffer;
   buffer_t send_buffer;
@@ -41,4 +43,6 @@ typedef struct request{
 int request_init(request_t *r, int fd, int epfd);
 int update_active(request_t *r);
 int close_request(request_t *r);
+
+
 #endif
