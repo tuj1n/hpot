@@ -2,6 +2,7 @@
 #include "util.h"
 #include <errno.h>
 #include <string.h>
+#include <unistd.h>
 #include <sys/socket.h>
 
 int buffer_recv(buffer_t *buf, int fd) {
@@ -9,7 +10,7 @@ int buffer_recv(buffer_t *buf, int fd) {
     int rest_buf_size = buffer_rest(buf); //缓冲区剩余大小
     int n = recv(fd, buf->end, rest_buf_size, 0);
     if (n == 0)
-      return OK;  // 读取完成或者对方已经关闭连接
+      return OK;  // 对方已经关闭连接
     if (n < 0) {
       if (errno == EAGAIN) {
           return AGAIN;

@@ -21,10 +21,12 @@ typedef struct request{
   uint8_t version_minor;
 
   method_t method;
+  char *request_line;
   char *uri;
   char *client_ip;
 
   time_t active_time;
+  bool keep_alive;
 
   int status;  // 200 301 304...
   bool done;
@@ -38,6 +40,8 @@ typedef struct request{
 
   int (*recv_handler)(struct request *r);
   int (*send_handler)(struct request *r);
+
+  int state;
 } request_t;
 
 int request_init(request_t *r, int fd, int epfd);

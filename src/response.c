@@ -27,6 +27,7 @@ int build_response(request_t *r) {
 }
 
 int build_response_err(request_t *r) {
+  build_response_line(r);
   return 0;
 }
 

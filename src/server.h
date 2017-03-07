@@ -17,6 +17,26 @@ typedef enum {
   DELETE,
 } method_t;
 
+typedef enum {
+  RL_S_BEGIN,
+  RL_S_METHOD,
+  RL_S_SP_BEFORE_URI,
+  RL_S_URI,
+  RL_S_SP_BEFROE_VERSION,
+  RL_S_HTTP_H,
+  RL_S_HTTP_HT,
+  RL_S_HTTP_HTT,
+  RL_S_HTTP_HTTP,
+  RL_S_HTTP_VERSION_SLASH,
+  RL_S_HTTP_VERSION_MAJOR,
+  RL_S_HTTP_VERSION_DOT,
+  RL_S_HTTP_VERSION_MINOR,
+  RL_S_SP_AFTER_VERSION,
+  RL_S_CR,
+  RL_S_LF,
+
+} request_state;
+
 int startup(uint16_t port);
 int setnonblocking(int fd);
 int accept_connection(int listen_fd, int epoll_fd);
