@@ -96,3 +96,9 @@ char *build_status_msg(int status) {
   }
   return msg;
 }
+
+char sataus_301_page[] =
+  "<html>" CRLF
+  "<head><title>301 Moved Permanently</title></head>" CRLF
+  "<body bgcolor=\"white\">" CRLF
+  "<center><h1>301 Moved Permanently</h1></center>" CRLF;

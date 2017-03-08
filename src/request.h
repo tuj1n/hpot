@@ -11,7 +11,6 @@
 #define AGAIN 1
 #define ERROR -1
 
-
 typedef struct request{
   int fd;
   int epfd;
@@ -22,7 +21,7 @@ typedef struct request{
 
   method_t method;
   char *request_line;
-  char *uri;
+  uri_t uri;
   char *client_ip;
 
   time_t active_time;
@@ -42,11 +41,14 @@ typedef struct request{
   int (*send_handler)(struct request *r);
 
   int state;
+  bool response_done = false;
 } request_t;
 
 int request_init(request_t *r, int fd, int epfd);
 int update_active(request_t *r);
 int close_request(request_t *r);
-
-
+int request_disable_in(request_t *r);
+int request_enable_in(request_t *r);
+int request_disable_out(request_t *r);
+int request_enable_out(request_t *r);
 #endif

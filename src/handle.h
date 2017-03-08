@@ -9,4 +9,6 @@ int handle_request_line(request_t *r);
 int handle_request_uri(request_t *r);
 int handle_request_header(request_t *r);
 int handle_request_body(request_t *r);
+int send_response_buffer(request_t *r);
+int send_response_file(request_t* r);
 #endif

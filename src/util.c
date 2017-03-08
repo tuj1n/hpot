@@ -8,3 +8,8 @@ bool issame(char *str1, const char *str2, int len) {
 
   return true;
 }
+
+void string_init(string_t *s) {
+  s->str = NULL;
+  s->len = 0;
+}

@@ -22,7 +22,19 @@ int buffer_recv(buffer_t *buf, int fd) {
   return AGAIN; // buffer已满
 }
 
-int buffer_send(buffer_t* buf, int fd);
+int buffer_send(buffer_t* buf, int fd) {
+  while (buffer_size(buf) > 0) {
+    int len = send(fd, buf->start, buffer_size(buf), 0);
+    if (len == -1) {
+        if (errno == EAGAIN)
+            return AGAIN;
+        return ERROR;
+    }
+    buf->start += len;
+  };
+  buffer_init(buf);
+  return OK;
+}
 
 int buffer_append(buffer_t *buf, char *str) {
   int rest = buffer_rest(buf);

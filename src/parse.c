@@ -1,12 +1,14 @@
 #include "parse.h"
 #include "util.h"
 #include "server.h"
+#include "string.h"
+#include <stdlib.h>
+#include <stdbool.h>
 
 int parse_request_line(request_t *r) {
   buffer_t *rb = &r->recv_buffer;
   int err;
   char *p;
-  log("setp2");
   for (p = rb->start; p != rb->end; p++) {
     char c = *p;
     switch (r->state) {
@@ -30,15 +32,27 @@ int parse_request_line(request_t *r) {
         }
         else
           return ERR_REQUEST;
-
       case RL_S_SP_BEFORE_URI:
         switch(c) {
           case ' ':
             break;
           default:
-            printf("%c\n", c);
+            r->uri.path.str = p;
+            r->state = RL_S_URI;
+            break;
         }
         break;
+      case RL_S_URI:
+        if (c != ' ') {
+          break;
+        }
+        else {
+          parse_request_uri(r, r->uri.path.str, p);
+          r->state = RL_S_SP_BEFROE_VERSION;
+        }
+      case RL_S_SP_BEFROE_VERSION:  // todo: parse the version and headers.
+        r->done = true;
+        return OK;
     }
   }
 }
@@ -83,5 +97,20 @@ int parse_request_header(request_t *r) {
 }
 
 int parse_request_body(request_t *r) {
+  return 0;
+}
+
+int parse_request_uri(request_t *r, char *start, char *end) {
+  int len = end - start;
+  char *p;
+  char *pathend = end;
+
+  r->uri.path.len = pathend - start;
+  for (p = start; p != end; p++)
+    if (*p == '?') {
+      pathend = p;
+      r->uri.path.len = pathend - p;
+      break;
+    }
   return 0;
 }

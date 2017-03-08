@@ -2,10 +2,25 @@
 #define _HPOT_SERVER_H_
 
 #include <stdint.h>
+#include <sys/epoll.h>
+#include "util.h"
 
 #define PORT 8888
 #define MAX_LISTEN 1024
 #define MAX_EVENTS 65535
+#define ROOT /home/terry/hpot
+
+
+typedef struct uri {
+  string_t scheme;  // e.g. http
+  string_t host;
+  string_t post;
+  string_t user;
+  string_t pass;
+  string_t path;
+  // querys key=value <map>
+  string_t fragment;  // after the hashmark
+} uri_t;
 
 typedef enum {
   GET,

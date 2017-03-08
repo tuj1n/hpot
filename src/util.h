@@ -18,6 +18,11 @@
 #define log_err(msg, ...) fprintf(stderr, "ERROR %s:%d: " msg "\n", __FILE__, __LINE__, ##__VA_ARGS__)
 #define log(msg, ...) fprintf(stderr, msg "\n", ##__VA_ARGS__)
 
+typedef struct string {
+  char *str;
+  int len;
+} string_t;
+
 static inline int min(int x, int y) {
   return x < y ? x : y;
 }
@@ -27,4 +32,6 @@ static inline int max(int x, int y) {
 }
 
 bool issame(char *str1, const char *str2, int len);
+
+void string_init(string_t *s);
 #endif
