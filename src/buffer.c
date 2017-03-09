@@ -9,12 +9,13 @@ int buffer_recv(buffer_t *buf, int fd) {
   while (!buffer_full(buf)) {
     int rest_buf_size = buffer_rest(buf); //缓冲区剩余大小
     int n = recv(fd, buf->end, rest_buf_size, 0);
+
     if (n == 0)
       return OK;  // 对方已经关闭连接
+
     if (n < 0) {
-      if (errno == EAGAIN) {
+      if (errno == EAGAIN)
           return AGAIN;
-      }
       return ERROR;
     }
     buf->end += n;

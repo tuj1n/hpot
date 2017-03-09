@@ -28,7 +28,7 @@ typedef struct request{
   bool keep_alive;
 
   int status;  // 200 301 304...
-  bool done;
+  bool request_done;
 
   buffer_t recv_buffer;
   buffer_t send_buffer;
@@ -41,7 +41,9 @@ typedef struct request{
   int (*send_handler)(struct request *r);
 
   int state;
-  bool response_done = false;
+  bool response_done;
+
+  mime_type_t mime;
 } request_t;
 
 int request_init(request_t *r, int fd, int epfd);

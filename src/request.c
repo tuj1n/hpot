@@ -13,9 +13,9 @@ int request_init(request_t *r, int fd, int epfd) {
   buffer_init(&r->send_buffer);
 
   r->state = RL_S_BEGIN;
-  r->recv_handler = handle_request_line;
   r->send_handler = send_response_buffer;
-  r->done = false;
+
+  r->request_done = false;
   r->response_done = false;
 
   string_init(&r->uri.path);

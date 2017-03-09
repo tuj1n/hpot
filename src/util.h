@@ -9,6 +9,7 @@
 #define ERROR -1
 #define ERR_REQUEST -2
 #define ERR_METHOD -3
+#define BUFFER_FULL -4
 
 #define CRLF "\r\n"
 

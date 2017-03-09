@@ -8,7 +8,12 @@
 #define PORT 8888
 #define MAX_LISTEN 1024
 #define MAX_EVENTS 65535
-#define ROOT /home/terry/hpot
+#define ROOT "/home/terry/github/hpot/"
+
+typedef struct mime_type {
+  char *type;
+  char *value;
+} mime_type_t;
 
 
 typedef struct uri {

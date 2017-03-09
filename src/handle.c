@@ -2,7 +2,33 @@
 #include "util.h"
 #include "parse.h"
 #include "response.h"
+#include <unistd.h>
+#include <errno.h>
 #include <sys/sendfile.h>
+
+mime_type_t mimes[] = {
+  {".html", "text/html"},
+  {".xml", "text/xml"},
+  {".xhtml", "application/xhtml+xml"},
+  {".txt", "text/plain"},
+  {".rtf", "application/rtf"},
+  {".pdf", "application/pdf"},
+  {".word", "application/msword"},
+  {".png", "image/png"},
+  {".gif", "image/gif"},
+  {".jpg", "image/jpeg"},
+  {".jpeg", "image/jpeg"},
+  {".ico","image/x-icon"},
+  {".au", "audio/basic"},
+  {".mpeg", "video/mpeg"},
+  {".mpg", "video/mpeg"},
+  {".avi", "video/x-msvideo"},
+  {".gz", "application/x-gzip"},
+  {".tar", "application/x-tar"},
+  {".css", "text/css"},
+  {".js", "application/javascript"},
+  {NULL, "text/plain"}
+};
 
 int handle_request(request_t *r) {
   buffer_t *rb = &r->recv_buffer;
@@ -15,20 +41,28 @@ int handle_request(request_t *r) {
   r->recv_handler = handle_request_line;
   do {
     err = r->recv_handler(r);
-  } while (err == OK && !r->done);
+  } while (err == OK && !r->request_done);
 
   return err;
 }
 
 int handle_response(request_t *r) {
-  //
+  char res[] = "HTTP 200 OK\r\nContent-Type:text/html\r\nServer:hpot\r\n\r\n<html><head><title>test</title></head><body><h1>test</h1><body></html>";
+  write(r->fd, res, sizeof(res));
+  // printf("fd : %d\n", r->file_fd);
+  // char buf[1024];
+  // int n;
+  // while ((n = read(r->file_fd, buf, sizeof(buf))) > 0){
+  //   write(r->fd, buf, n);
+  // }
+  // fflush(NULL);
+  close(r->fd);
+  return ERROR;
 }
 
 int handle_request_line(request_t *r) {
   int err = parse_request_line(r);
-  request_disable_in(r);
-  request_enable_out(r);
-  return err; // temp
+
   if (err = AGAIN)
     return err;
   else if (err != OK) {
@@ -61,8 +95,9 @@ int handle_request_uri(request_t *r) {
 }
 
 int send_response_buffer(request_t *r) {
-    buffer_t *sb = r->send_buffer；
-    int err = buffer_send(sb, r->fd);
+    buffer_t *sb = &r->send_buffer;
+    int err;
+    err = buffer_send(sb, r->fd);
     if (err == OK) {
       buffer_init(sb);
       if (r->file_fd != -1) {

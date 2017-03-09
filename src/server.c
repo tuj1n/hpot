@@ -119,7 +119,7 @@ int main(int argc, char *argv[]) {
           update_active(r);
       }
       if (events[i].events & EPOLLOUT) {
-        if ((err == handle_response(r)) < 0)
+        if ((err == handle_response(r)) == ERROR)
           close_request(r);
         else
           update_active(r);
